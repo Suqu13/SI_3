@@ -3,16 +3,21 @@ package engine
 class Board(val cells: Array<Array<State>> = Array(6) { Array(7) { State.EMPTY } }) {
 
     var winner: State? = null
+        private set
+    private var cellsLeft = 42
 
     fun copy(): Board {
         return Board(cells.map { it.clone() }.toTypedArray())
     }
 
+    fun checkForDraw() = cellsLeft == 0
+
     fun move(columnNum: Int, state: State): Boolean {
         val possibleCellRowIndex = findCellRowIndex(columnNum)
         if (possibleCellRowIndex == -1) return false
         cells[possibleCellRowIndex][columnNum] = state
-        if (checkIfWinner(state)) winner = state
+        cellsLeft --
+        if (checkForWinner(state)) winner = state
         return true
     }
 
@@ -125,7 +130,7 @@ class Board(val cells: Array<Array<State>> = Array(6) { Array(7) { State.EMPTY }
     }
 
     //  fun obtainArraysOfFour(): Array<Array<State>> = (obtainArraysOfFourHorizontal() + obtainArraysOfFourVertical() + obtainArraysOfFourInDiagonal())
-    private fun checkIfWinner(state: State): Boolean {
+    private fun checkForWinner(state: State): Boolean {
         return obtainArraysOfFour().any { arrayOfStates -> arrayOfStates.count { it == state } == 4 }
     }
 

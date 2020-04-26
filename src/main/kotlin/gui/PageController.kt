@@ -10,7 +10,6 @@ import javafx.collections.ObservableList
 import tornadofx.*
 import kotlin.random.Random
 
-
 class PageController : Controller() {
     private lateinit var board: Board
     private lateinit var difficultyLevel: DifficultyLevel
@@ -21,35 +20,48 @@ class PageController : Controller() {
     val started = SimpleBooleanProperty(false)
     val mainButtonLabel = SimpleStringProperty("Start")
     val playerMove = SimpleStringProperty(PlayerMove.NOT_STARTED.message)
-    val winner = SimpleStringProperty("")
+    val resultMessage = SimpleStringProperty("")
 
     private var currentPlayerState = SimpleObjectProperty<State>()
+    private var futurePlayerState = SimpleObjectProperty<State>()
 
     private fun observeForPlayerStateChanged() {
         currentPlayerState.onChange {
-            if (board.winner != null){
-                winner.set(board.winner!!.winnerMessage)
-            } else {
-                when (currentPlayerState.get()) {
-                    State.AI_PLAYER -> onSecondPlayerMove()
-                    State.FIRST_PLAYER -> onFirstPlayerMove()
-                    else -> {
+            val winner = board.winner
+            when {
+                winner != null -> {
+                    resultMessage.set(winner.winnerMessage)
+                    started.set(false)
+                }
+                board.checkForDraw() -> {
+                    resultMessage.set("DRAW!")
+                    started.set(false)
+                }
+                else -> {
+                    when (currentPlayerState.get()) {
+                        State.AI_PLAYER -> onSecondPlayerMove()
+                        State.FIRST_PLAYER -> onFirstPlayerMove()
+                        else -> {
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun chooseFirstPlayer(): State {
+    private fun chooseCurrentAndFuturePlayer(): Pair<State, State> {
         return if (Random.nextBoolean())
-            State.FIRST_PLAYER
+            Pair(State.FIRST_PLAYER, State.AI_PLAYER)
         else
-            State.AI_PLAYER
+            Pair(State.AI_PLAYER, State.FIRST_PLAYER)
     }
 
-    private fun updateBoard(columnNum: Int, state: State) {
-        board.move(columnNum, state)
-        cells.setAll(board.cells.toList())
+    private fun updateBoard(columnNum: Int, state: State): Boolean {
+        val correctness = board.move(columnNum, state)
+        if(correctness) {
+            cells.setAll(board.cells.toList())
+        }
+        return correctness
     }
 
     fun initialize() {
@@ -63,7 +75,7 @@ class PageController : Controller() {
         playerMove.set(PlayerMove.OPPONENT_MOVE.message)
         tornadofx.runAsync { minMaxAlgorithm.minimax(board, difficultyLevel.depth).first } ui {
             updateBoard(it, State.AI_PLAYER)
-            currentPlayerState.set(State.FIRST_PLAYER)
+            rewriteCurrentAndFuturePlayer()
         }
     }
 
@@ -81,22 +93,34 @@ class PageController : Controller() {
             started.set(true)
             mainButtonLabel.set("Restart!")
             minMaxAlgorithm = MinMaxAlgorithm(State.AI_PLAYER, State.FIRST_PLAYER)
-            currentPlayerState.set(chooseFirstPlayer())
+            val (currentPlayer, futurePlayer) = chooseCurrentAndFuturePlayer()
+            currentPlayerState.set(currentPlayer)
+            futurePlayerState.set(futurePlayer)
         }
     }
 
     fun restartOnClick() {
-        winner.set("")
+        resultMessage.set("")
         board = Board()
         cells.setAll(board.cells.toList())
         minMaxAlgorithm = MinMaxAlgorithm(State.AI_PLAYER, State.FIRST_PLAYER)
-        currentPlayerState.set(chooseFirstPlayer())
+        val (currentPlayer, futurePlayer) = chooseCurrentAndFuturePlayer()
+        currentPlayerState.set(currentPlayer)
+        futurePlayerState.set(futurePlayer)
+    }
+
+    private fun rewriteCurrentAndFuturePlayer() {
+        val currentPlayer = currentPlayerState.get()
+        val futurePlayer = futurePlayerState.get()
+        futurePlayerState.set(currentPlayer)
+        currentPlayerState.set(futurePlayer)
     }
 
     fun moveOnClick(columnNum: Int) {
-        updateBoard(columnNum, State.FIRST_PLAYER)
-        playerMove.set(PlayerMove.OPPONENT_MOVE.message)
-        currentPlayerState.set(State.AI_PLAYER)
+        if (updateBoard(columnNum, currentPlayerState.get())) {
+            playerMove.set(PlayerMove.OPPONENT_MOVE.message)
+            rewriteCurrentAndFuturePlayer()
+        }
     }
 }
 

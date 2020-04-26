@@ -97,7 +97,7 @@ class Page : View() {
             ) { value -> pageController.difficultyLevelOnChange(DifficultyLevel.valueOf(value)) }
             customButtonBuilder(pageController.mainButtonLabel) { if (pageController.started.get()) pageController.restartOnClick() else pageController.startOnClick() }
             moveStatus(pageController.playerMove)
-            winnerStatus(pageController.winner)
+            winnerStatus(pageController.resultMessage)
         }
     }
 
