@@ -36,7 +36,9 @@ class Page : View() {
     private fun getCssRuleForUser(state: State): CssRule {
         return when (state) {
             State.FIRST_PLAYER -> Styles.firstPlayerButton
-            State.AI_PLAYER -> Styles.secondPlayerButton
+            State.SECOND_PLAYER -> Styles.secondPlayerButton
+            State.FIRST_AI_PLAYER -> Styles.firstAIButton
+            State.SECOND_AI_PLAYER -> Styles.secondAIButton
             else -> Styles.emptyButton
         }
     }
@@ -91,6 +93,26 @@ class Page : View() {
             alignment = Pos.TOP_CENTER
             padding = Insets(40.0, 0.0, 40.0, 0.0)
             tittle("Connect Four")
+            customComboBoxBuilder(
+                "First Player",
+                pageContext.players
+            ) { value ->
+                pageController.playerOnChange(
+                    value,
+                    State.FIRST_PLAYER,
+                    State.FIRST_AI_PLAYER
+                ) { state -> pageController.firstPlayer = state }
+            }
+            customComboBoxBuilder(
+                "Second Player",
+                pageContext.players
+            ) { value ->
+                pageController.playerOnChange(
+                    value,
+                    State.SECOND_PLAYER,
+                    State.SECOND_AI_PLAYER
+                ) { state -> pageController.secondPlayer = state }
+            }
             customComboBoxBuilder(
                 "Difficulty Level",
                 pageContext.difficultyLevels

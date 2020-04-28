@@ -12,7 +12,10 @@ class Styles : Stylesheet() {
 
         val firstPlayerButton by cssclass()
         val secondPlayerButton by cssclass()
+        val firstAIButton by cssclass()
+        val secondAIButton by cssclass()
         val emptyButton by cssclass()
+
         val generalButton by cssclass()
         val generalButtonBackground by cssclass()
 
@@ -36,6 +39,14 @@ class Styles : Stylesheet() {
 
         s(secondPlayerButton) {
             backgroundColor = multi(Color.BLUE)
+        }
+
+        s(firstAIButton) {
+            backgroundColor = multi(Color.GREEN)
+        }
+
+        s(secondAIButton) {
+            backgroundColor = multi(Color.PINK)
         }
 
         s(emptyButton) {
