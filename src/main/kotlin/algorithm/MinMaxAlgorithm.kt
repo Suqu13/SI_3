@@ -2,10 +2,13 @@ package algorithm
 
 import engine.Board
 import engine.State
+import java.lang.Integer.min
+import kotlin.math.max
 
 class MinMaxAlgorithm(private val maximizingPlayerState: State, private val minimizingPlayerState: State) {
 
-    private fun checkIfTerminalNodeOccurred(board: Board): Boolean = board.winner != null || board.findPossibleMoves().isEmpty()
+    private fun checkIfTerminalNodeOccurred(board: Board): Boolean =
+        board.winner != null || board.findPossibleMoves().isEmpty()
 
     private fun scoreFour(state: State, opponentState: State, arrayOfFourStates: Array<State>): Int {
         val stateCount = arrayOfFourStates.count { it == state }
@@ -20,10 +23,10 @@ class MinMaxAlgorithm(private val maximizingPlayerState: State, private val mini
     }
 
     private fun score(board: Board, state: State, opponentState: State): Int =
-         board.obtainArraysOfFour().map { scoreFour(state, opponentState, it) }.sum()
+        board.obtainArraysOfFour().map { scoreFour(state, opponentState, it) }.sum()
 
     //  returns pair where first -> columnNum, second -> actualScore
-    fun minimax(board: Board, depth: Int, maximizingPlayer: Boolean = true): Pair<Int, Int> {
+    fun minimax(board: Board, depth: Int, alpha: Int, beta: Int, maximizingPlayer: Boolean = true): Pair<Int, Int> {
         if (depth == 0) {
             return Pair(-1, score(board, maximizingPlayerState, minimizingPlayerState))
         } else if (checkIfTerminalNodeOccurred(board)) {
@@ -40,26 +43,30 @@ class MinMaxAlgorithm(private val maximizingPlayerState: State, private val mini
 
         if (maximizingPlayer) {
             value = Int.MIN_VALUE
-            possibleMoves.forEach {
+            for (it in possibleMoves) {
                 val boardCopy = board.copy()
                 boardCopy.move(it, maximizingPlayerState)
-                val (_, score) = minimax(boardCopy, depth - 1, false)
+                val (_, score) = minimax(boardCopy, depth - 1, alpha, beta, false)
                 if (score > value) {
                     value = score
                     columnNum = it
                 }
+                if (max(alpha, value) >= beta)
+                    break
             }
             return Pair(columnNum, value)
         } else {
             value = Int.MAX_VALUE
-            possibleMoves.forEach {
+            for (it in possibleMoves) {
                 val boardCopy = board.copy()
                 boardCopy.move(it, minimizingPlayerState)
-                val (_, score) = minimax(boardCopy, depth - 1, true)
+                val (_, score) = minimax(boardCopy, depth - 1, alpha, beta,  true)
                 if (score < value) {
                     value = score
                     columnNum = it
                 }
+                if (alpha >= min(beta, value))
+                    break
             }
             return Pair(columnNum, value)
         }

@@ -92,7 +92,7 @@ class PageController : Controller() {
     private fun onAIMove(move: PlayerMove, state: State, minMaxAlgorithm: MinMaxAlgorithm, depth: Int) {
         disabled.set(true)
         playerMove.set(move.message)
-        tornadofx.runAsync { minMaxAlgorithm.minimax(board, depth).first } ui {
+        tornadofx.runAsync { minMaxAlgorithm.minimax(board, depth, Int.MIN_VALUE, Int.MAX_VALUE).first} ui {
             updateBoard(it, state)
             rewriteCurrentAndFuturePlayer()
         }
