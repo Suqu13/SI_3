@@ -12,13 +12,14 @@ import kotlin.random.Random
 
 class PageController : Controller() {
     private lateinit var board: Board
-    private lateinit var difficultyLevel: DifficultyLevel
+
     private lateinit var firstMinMaxAlgorithm: MinMaxAlgorithm
-    private lateinit var secondinMaxAlgorithm: MinMaxAlgorithm
+    private lateinit var secondMinMaxAlgorithm: MinMaxAlgorithm
 
     lateinit var firstPlayer: State
     lateinit var secondPlayer: State
-
+    lateinit var firstDifficultyLevel: DifficultyLevel
+    lateinit var secondDifficultyLevel: DifficultyLevel
 
     var cells: ObservableList<Array<State>> = observableListOf()
     val disabled = SimpleBooleanProperty(true)
@@ -32,28 +33,39 @@ class PageController : Controller() {
 
     private fun observeForPlayerStateChanged() {
         currentPlayerState.onChange {
-            val winner = board.winner
-            when {
-                winner != null -> {
-                    resultMessage.set(winner.winnerMessage)
-                    started.set(false)
-                }
-                board.checkForDraw() -> {
-                    resultMessage.set("DRAW!")
-                    started.set(false)
-                }
-                else -> {
-                    when (currentPlayerState.get()) {
-                        State.FIRST_AI_PLAYER -> onAIMove(PlayerMove.FIRST_AI_MOVE, State.FIRST_AI_PLAYER, firstMinMaxAlgorithm)
-                        State.SECOND_AI_PLAYER -> onAIMove(PlayerMove.SECOND_AI_MOVE, State.SECOND_AI_PLAYER, secondinMaxAlgorithm)
-                        State.FIRST_PLAYER -> onPlayerMove(PlayerMove.FIRST_PLAYER_MOVE)
-                        State.SECOND_PLAYER -> onPlayerMove(PlayerMove.SECOND_PLAYER_MOVE)
-                        else -> {
-                        }
+            if (!checkIfGameFinished())
+                when (currentPlayerState.get()) {
+                    State.FIRST_AI_PLAYER -> onAIMove(
+                        PlayerMove.FIRST_AI_MOVE,
+                        State.FIRST_AI_PLAYER,
+                        firstMinMaxAlgorithm,
+                        firstDifficultyLevel.depth
+                    )
+                    State.SECOND_AI_PLAYER -> onAIMove(
+                        PlayerMove.SECOND_AI_MOVE,
+                        State.SECOND_AI_PLAYER,
+                        secondMinMaxAlgorithm,
+                        secondDifficultyLevel.depth
+                    )
+                    State.FIRST_PLAYER -> onPlayerMove(PlayerMove.FIRST_PLAYER_MOVE)
+                    State.SECOND_PLAYER -> onPlayerMove(PlayerMove.SECOND_PLAYER_MOVE)
+                    else -> {
                     }
                 }
-            }
         }
+    }
+
+    private fun checkIfGameFinished(): Boolean {
+        val winner = board.winner != null
+        val draw = board.checkForDraw()
+        if (winner) {
+            resultMessage.set(board.winner!!.winnerMessage)
+            started.set(false)
+        } else if (draw) {
+            resultMessage.set("DRAW!")
+            started.set(false)
+        }
+        return winner || draw
     }
 
     private fun chooseCurrentAndFuturePlayer(): Pair<State, State> {
@@ -77,10 +89,10 @@ class PageController : Controller() {
         cells.setAll(board.cells.toList())
     }
 
-    private fun onAIMove(move: PlayerMove, state: State, minMaxAlgorithm: MinMaxAlgorithm) {
+    private fun onAIMove(move: PlayerMove, state: State, minMaxAlgorithm: MinMaxAlgorithm, depth: Int) {
         disabled.set(true)
         playerMove.set(move.message)
-        tornadofx.runAsync { minMaxAlgorithm.minimax(board, difficultyLevel.depth).first } ui {
+        tornadofx.runAsync { minMaxAlgorithm.minimax(board, depth).first } ui {
             updateBoard(it, state)
             rewriteCurrentAndFuturePlayer()
         }
@@ -89,10 +101,6 @@ class PageController : Controller() {
     private fun onPlayerMove(move: PlayerMove) {
         disabled.set(false)
         playerMove.set(move.message)
-    }
-
-    fun difficultyLevelOnChange(level: DifficultyLevel) {
-        difficultyLevel = level
     }
 
     fun playerOnChange(name: String, playerState: State, aiState: State, setPlayer: (state: State) -> Unit) {
@@ -105,31 +113,36 @@ class PageController : Controller() {
     }
 
     fun startOnClick() {
-        if (this::difficultyLevel.isInitialized && this::firstPlayer.isInitialized && this::secondPlayer.isInitialized) {
-            started.set(true)
-            mainButtonLabel.set("Restart!")
-            prepareAIPlayers()
-            val (currentPlayer, futurePlayer) = chooseCurrentAndFuturePlayer()
-            futurePlayerState.set(futurePlayer)
-            currentPlayerState.set(currentPlayer)
+        if (this::firstPlayer.isInitialized && this::secondPlayer.isInitialized) {
+            if (this::firstDifficultyLevel.isInitialized && this::secondDifficultyLevel.isInitialized && this::firstPlayer.isInitialized && this::secondPlayer.isInitialized) {
+                firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER)
+                secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER)
+                start()
+            } else if (firstPlayer == State.FIRST_AI_PLAYER && this::firstDifficultyLevel.isInitialized && secondPlayer != State.SECOND_AI_PLAYER) {
+                firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER)
+                start()
+            } else if (firstPlayer != State.FIRST_AI_PLAYER && secondPlayer == State.SECOND_AI_PLAYER && this::secondDifficultyLevel.isInitialized) {
+                secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER)
+                start()
+            } else if (firstPlayer == State.FIRST_PLAYER && secondPlayer == State.SECOND_PLAYER) {
+                start()
+            }
         }
     }
 
-    private fun prepareAIPlayers() {
-        if (firstPlayer == State.FIRST_AI_PLAYER)
-            firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER)
-        if (secondPlayer == State.SECOND_AI_PLAYER)
-            secondinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER)
+    private fun start() {
+        started.set(true)
+        mainButtonLabel.set("Restart!")
+        val (currentPlayer, futurePlayer) = chooseCurrentAndFuturePlayer()
+        futurePlayerState.set(futurePlayer)
+        currentPlayerState.set(currentPlayer)
     }
 
     fun restartOnClick() {
         resultMessage.set("")
         board = Board()
         cells.setAll(board.cells.toList())
-        prepareAIPlayers()
-        val (currentPlayer, futurePlayer) = chooseCurrentAndFuturePlayer()
-        currentPlayerState.set(currentPlayer)
-        futurePlayerState.set(futurePlayer)
+        startOnClick()
     }
 
     private fun rewriteCurrentAndFuturePlayer() {

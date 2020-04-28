@@ -104,6 +104,10 @@ class Page : View() {
                 ) { state -> pageController.firstPlayer = state }
             }
             customComboBoxBuilder(
+                "First AI difficulty Level",
+                pageContext.difficultyLevels
+            ) { value -> pageController.firstDifficultyLevel = DifficultyLevel.valueOf(value) }
+            customComboBoxBuilder(
                 "Second Player",
                 pageContext.players
             ) { value ->
@@ -114,9 +118,9 @@ class Page : View() {
                 ) { state -> pageController.secondPlayer = state }
             }
             customComboBoxBuilder(
-                "Difficulty Level",
+                "Second AI difficulty Level",
                 pageContext.difficultyLevels
-            ) { value -> pageController.difficultyLevelOnChange(DifficultyLevel.valueOf(value)) }
+            ) { value -> pageController.secondDifficultyLevel = DifficultyLevel.valueOf(value) }
             customButtonBuilder(pageController.mainButtonLabel) { if (pageController.started.get()) pageController.restartOnClick() else pageController.startOnClick() }
             moveStatus(pageController.playerMove)
             winnerStatus(pageController.resultMessage)
