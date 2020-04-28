@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.collections.ObservableList
 import tornadofx.*
+import utils.HistoryWriter
 import kotlin.random.Random
 
 class PageController : Controller() {
@@ -31,9 +32,11 @@ class PageController : Controller() {
     private var currentPlayerState = SimpleObjectProperty<State>()
     private var futurePlayerState = SimpleObjectProperty<State>()
 
+    private val historyWriter = HistoryWriter()
+
     private fun observeForPlayerStateChanged() {
         currentPlayerState.onChange {
-            if (!checkIfGameFinished())
+            if (!checkIfGameFinished()) {
                 when (currentPlayerState.get()) {
                     State.FIRST_AI_PLAYER -> onAIMove(
                         PlayerMove.FIRST_AI_MOVE,
@@ -52,6 +55,17 @@ class PageController : Controller() {
                     else -> {
                     }
                 }
+            } else {
+                historyWriter.writeHistoryToFile(
+                    board.winner,
+                    board.cells,
+                    firstDifficultyLevel,
+                    secondDifficultyLevel,
+                    firstPlayer,
+                    secondPlayer
+                )
+                historyWriter.clearHistory()
+            }
         }
     }
 
@@ -84,15 +98,23 @@ class PageController : Controller() {
     }
 
     fun initialize() {
-        board = Board()
         observeForPlayerStateChanged()
-        cells.setAll(board.cells.toList())
+        cells.setAll(*Array(6) { Array(7) { State.EMPTY } })
     }
 
     private fun onAIMove(move: PlayerMove, state: State, minMaxAlgorithm: MinMaxAlgorithm, depth: Int) {
         disabled.set(true)
         playerMove.set(move.message)
-        tornadofx.runAsync { minMaxAlgorithm.minimax(board, depth, Int.MIN_VALUE, Int.MAX_VALUE).first} ui {
+        tornadofx.runAsync {
+            historyWriter.addToHistory(state) {
+                minMaxAlgorithm.minimax(
+                    board,
+                    depth,
+                    Int.MIN_VALUE,
+                    Int.MAX_VALUE
+                )
+            }
+        } ui {
             updateBoard(it, state)
             rewriteCurrentAndFuturePlayer()
         }
@@ -112,7 +134,7 @@ class PageController : Controller() {
         )
     }
 
-    fun startOnClick() {
+    private fun createEnvironment() {
         if (this::firstPlayer.isInitialized && this::secondPlayer.isInitialized) {
             if (this::firstDifficultyLevel.isInitialized && this::secondDifficultyLevel.isInitialized && this::firstPlayer.isInitialized && this::secondPlayer.isInitialized) {
                 firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER)
@@ -131,6 +153,8 @@ class PageController : Controller() {
     }
 
     private fun start() {
+        currentPlayerState.set(null)
+        futurePlayerState.set(null)
         started.set(true)
         mainButtonLabel.set("Restart!")
         val (currentPlayer, futurePlayer) = chooseCurrentAndFuturePlayer()
@@ -139,10 +163,11 @@ class PageController : Controller() {
     }
 
     fun restartOnClick() {
+        historyWriter.clearHistory()
         resultMessage.set("")
         board = Board()
         cells.setAll(board.cells.toList())
-        startOnClick()
+        createEnvironment()
     }
 
     private fun rewriteCurrentAndFuturePlayer() {

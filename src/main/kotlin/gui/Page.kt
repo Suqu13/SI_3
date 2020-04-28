@@ -121,7 +121,7 @@ class Page : View() {
                 "Second AI difficulty Level",
                 pageContext.difficultyLevels
             ) { value -> pageController.secondDifficultyLevel = DifficultyLevel.valueOf(value) }
-            customButtonBuilder(pageController.mainButtonLabel) { if (pageController.started.get()) pageController.restartOnClick() else pageController.startOnClick() }
+            customButtonBuilder(pageController.mainButtonLabel) { pageController.restartOnClick() }
             moveStatus(pageController.playerMove)
             winnerStatus(pageController.resultMessage)
         }
