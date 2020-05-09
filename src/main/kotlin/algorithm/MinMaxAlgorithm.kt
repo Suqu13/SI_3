@@ -26,7 +26,14 @@ class MinMaxAlgorithm(private val maximizingPlayerState: State, private val mini
         board.obtainArraysOfFour().map { scoreFour(state, opponentState, it) }.sum()
 
     //  returns pair where first -> columnNum, second -> actualScore
-    fun minimax(board: Board, depth: Int, alpha: Int, beta: Int, maximizingPlayer: Boolean = true): Pair<Int, Int> {
+    fun minimax(
+        board: Board,
+        depth: Int,
+        alpha: Int,
+        beta: Int,
+        alphaBeta: Boolean = true,
+        maximizingPlayer: Boolean = true
+    ): Pair<Int, Int> {
         if (depth == 0) {
             return Pair(-1, score(board, maximizingPlayerState, minimizingPlayerState))
         } else if (checkIfTerminalNodeOccurred(board)) {
@@ -46,12 +53,12 @@ class MinMaxAlgorithm(private val maximizingPlayerState: State, private val mini
             for (it in possibleMoves) {
                 val boardCopy = board.copy()
                 boardCopy.move(it, maximizingPlayerState)
-                val (_, score) = minimax(boardCopy, depth - 1, alpha, beta, false)
+                val (_, score) = minimax(boardCopy, depth - 1, alpha, beta, alphaBeta, false)
                 if (score > value) {
                     value = score
                     columnNum = it
                 }
-                if (max(alpha, value) >= beta)
+                if (alphaBeta && max(alpha, value) >= beta)
                     break
             }
             return Pair(columnNum, value)
@@ -60,12 +67,12 @@ class MinMaxAlgorithm(private val maximizingPlayerState: State, private val mini
             for (it in possibleMoves) {
                 val boardCopy = board.copy()
                 boardCopy.move(it, minimizingPlayerState)
-                val (_, score) = minimax(boardCopy, depth - 1, alpha, beta,  true)
+                val (_, score) = minimax(boardCopy, depth - 1, alpha, beta, alphaBeta, true)
                 if (score < value) {
                     value = score
                     columnNum = it
                 }
-                if (alpha >= min(beta, value))
+                if (alphaBeta && alpha >= min(beta, value))
                     break
             }
             return Pair(columnNum, value)

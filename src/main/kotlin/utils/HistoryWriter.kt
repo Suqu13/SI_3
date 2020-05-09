@@ -24,6 +24,26 @@ class HistoryWriter {
         return result.first
     }
 
+    fun prepareGameStats(firstState: State, secondState: State, winner: State?): Pair<StateResult, StateResult> {
+        val firstStateMoves = moves.filter { it.third == firstState }
+        val secondStateMoves = moves.filter { it.third == secondState }
+
+        val firstStateResult = StateResult(
+            firstState,
+            firstStateMoves.size,
+            firstStateMoves.map { it.second }.sum(),
+            firstState == winner
+        )
+        val secondStateResult = StateResult(
+            secondState,
+            secondStateMoves.size,
+            secondStateMoves.map { it.second }.sum(),
+            secondState == winner
+        )
+
+        return Pair(firstStateResult, secondStateResult)
+    }
+
     fun writeHistoryToFile(
         winner: State?,
         cells: Array<Array<State>>,
@@ -41,3 +61,5 @@ class HistoryWriter {
         }
     }
 }
+
+data class StateResult(val state: State, val movesNumber: Int, val movesTime: Long, val isWinner: Boolean)

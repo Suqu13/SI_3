@@ -34,6 +34,9 @@ class PageController : Controller() {
 
     private val historyWriter = HistoryWriter()
 
+    private var randomMovesCounter = 0
+    private var maxRandomMovesCounter = 0
+
     private fun observeForPlayerStateChanged() {
         currentPlayerState.onChange {
             if (!checkIfGameFinished()) {
@@ -102,17 +105,23 @@ class PageController : Controller() {
         cells.setAll(*Array(6) { Array(7) { State.EMPTY } })
     }
 
+
     private fun onAIMove(move: PlayerMove, state: State, minMaxAlgorithm: MinMaxAlgorithm, depth: Int) {
         disabled.set(true)
         playerMove.set(move.message)
         tornadofx.runAsync {
             historyWriter.addToHistory(state) {
-                minMaxAlgorithm.minimax(
-                    board,
-                    depth,
-                    Int.MIN_VALUE,
-                    Int.MAX_VALUE
-                )
+                if (randomMovesCounter < maxRandomMovesCounter) {
+                    randomMovesCounter++
+                    Pair(Random.nextInt(7), 0)
+                } else {
+                    minMaxAlgorithm.minimax(
+                        board,
+                        depth,
+                        Int.MIN_VALUE,
+                        Int.MAX_VALUE
+                    )
+                }
             }
         } ui {
             updateBoard(it, state)
@@ -152,12 +161,23 @@ class PageController : Controller() {
         }
     }
 
+    private fun getMaxRandomMovesCounter(firstState: State, secondState: State): Int {
+        var counter = 0
+        if (firstState == State.FIRST_AI_PLAYER || firstState == State.SECOND_AI_PLAYER)
+            counter++
+        if (secondState == State.FIRST_AI_PLAYER || secondState == State.SECOND_AI_PLAYER)
+            counter++
+        return counter
+    }
+
     private fun start() {
         currentPlayerState.set(null)
         futurePlayerState.set(null)
         started.set(true)
         mainButtonLabel.set("Restart!")
         val (currentPlayer, futurePlayer) = chooseCurrentAndFuturePlayer()
+        maxRandomMovesCounter = getMaxRandomMovesCounter(currentPlayer, futurePlayer)
+        randomMovesCounter = 0
         futurePlayerState.set(futurePlayer)
         currentPlayerState.set(currentPlayer)
     }

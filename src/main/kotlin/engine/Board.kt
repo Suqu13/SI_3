@@ -41,24 +41,6 @@ class Board(val cells: Array<Array<State>> = Array(6) { Array(7) { State.EMPTY }
         return possibleCellRowIndex
     }
 
-//    private fun obtainArraysOfFourHorizontal(): Array<Array<State>> {
-//        val windowsNum = cells[0].size % 4 + 1
-//        val arraysOfFour = arrayListOf(arrayOf<State>())
-//        cells.forEach { row ->
-//            (0 until windowsNum).forEach { arraysOfFour.add(row.sliceArray(it until it + 4)) }
-//        }
-//        return arraysOfFour.toTypedArray()
-//    }
-
-//    private fun obtainArraysOfFourVertical(): Array<Array<State>> {
-//        val windowsNum = cells.size % 4 + 1
-//        val arraysOfFour = arrayListOf(arrayOf<State>())
-//        (cells[0].indices).forEach { columnIndex ->
-//            (0 until windowsNum).forEach { arraysOfFour.add(arrayOf(cells[it][columnIndex], cells[it + 1][columnIndex], cells[it + 2][columnIndex], cells[it + 3][columnIndex])) }
-//        }
-//        return arraysOfFour.toTypedArray()
-//    }
-
     //    private fun obtainArraysOfFourInDiagonal(): Array<Array<State>> {
     fun obtainArraysOfFour(): Array<Array<State>> {
         val windowColumnNum = cells[0].size % 4 + 1
