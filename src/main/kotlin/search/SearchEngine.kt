@@ -7,6 +7,7 @@ import engine.Board
 import engine.State
 import utils.HistoryWriter
 import utils.StateResult
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class SearchEngine(
@@ -135,10 +136,14 @@ class SearchEngine(
         }
     }
 
+    private fun divideLongByIntegerAndRoundToTwoDecimal(first: Long, second: Int): Double =
+        (first.toDouble() / second * 100).roundToInt() / 100.0
+
+
     private fun countAVGTime(res: Pair<Int, Long>): Double {
         return try {
             val (moves, time) = res
-            (time.toDouble() / moves)
+            divideLongByIntegerAndRoundToTwoDecimal(time, moves)
         } catch (e: Exception) {
             0.0
         }
@@ -147,7 +152,7 @@ class SearchEngine(
     private fun countAVGTime(res: Triple<Int, Long, Int>): Double {
         return try {
             val (moves, time, _) = res
-            (time.toDouble() / moves)
+            divideLongByIntegerAndRoundToTwoDecimal(time, moves)
         } catch (e: Exception) {
             0.0
         }
@@ -156,7 +161,7 @@ class SearchEngine(
     private fun countAVGMoves(res: Pair<Int, Long>, gamesNum: Int): Double {
         return try {
             val (moves, _) = res
-            (moves.toDouble() / gamesNum)
+            divideLongByIntegerAndRoundToTwoDecimal(moves.toLong(), gamesNum)
         } catch (e: Exception) {
             0.0
         }
@@ -165,7 +170,7 @@ class SearchEngine(
     private fun countAVGMoves(res: Triple<Int, Long, Int>, gamesNum: Int): Double {
         return try {
             val (moves, _, _) = res
-            (moves.toDouble() / gamesNum)
+            divideLongByIntegerAndRoundToTwoDecimal(moves.toLong(), gamesNum)
         } catch (e: Exception) {
             0.0
         }
