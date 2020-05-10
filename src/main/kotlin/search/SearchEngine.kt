@@ -138,7 +138,7 @@ class SearchEngine(
     private fun countAVGTime(res: Pair<Int, Long>): Double {
         return try {
             val (moves, time) = res
-            (time / moves).toDouble()
+            (time.toDouble() / moves)
         } catch (e: Exception) {
             0.0
         }
@@ -147,7 +147,7 @@ class SearchEngine(
     private fun countAVGTime(res: Triple<Int, Long, Int>): Double {
         return try {
             val (moves, time, _) = res
-            (time / moves).toDouble()
+            (time.toDouble() / moves)
         } catch (e: Exception) {
             0.0
         }
@@ -156,7 +156,7 @@ class SearchEngine(
     private fun countAVGMoves(res: Pair<Int, Long>, gamesNum: Int): Double {
         return try {
             val (moves, _) = res
-            (moves / gamesNum).toDouble()
+            (moves.toDouble() / gamesNum)
         } catch (e: Exception) {
             0.0
         }
@@ -165,7 +165,7 @@ class SearchEngine(
     private fun countAVGMoves(res: Triple<Int, Long, Int>, gamesNum: Int): Double {
         return try {
             val (moves, _, _) = res
-            (moves / gamesNum).toDouble()
+            (moves.toDouble() / gamesNum)
         } catch (e: Exception) {
             0.0
         }
