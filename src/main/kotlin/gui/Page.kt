@@ -126,7 +126,7 @@ class Page : View() {
                 pageContext.difficultyLevels
             ) { value -> pageController.secondDifficultyLevel = DifficultyLevel.valueOf(value) }
             customComboBoxBuilder(
-                "First AI heuristic",
+                "Second AI heuristic",
                 pageContext.heuristics
             ) { value -> pageController.secondHeuristicKind = HeuristicKind.valueOf(value) }
             customButtonBuilder(pageController.mainButtonLabel) { pageController.restartOnClick() }
