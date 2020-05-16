@@ -55,7 +55,7 @@ class HistoryWriter {
         firstState: State,
         secondState: State
     ) {
-        writer.open("${winner?.name}_${firstAiLevel.name}/${firstHeuristicKind.name}-${secondAiLevel.name}/${secondHeuristicKind.name}_${LocalDateTime.now()}.csv") {
+        writer.open("${winner?.name}_${firstAiLevel.name}_${firstHeuristicKind.name}-${secondAiLevel.name}_${secondHeuristicKind.name}_${LocalDateTime.now()}.csv") {
             writeRow(moves.filter { it.third == firstState })
             writeRow(moves.filter { it.third == secondState })
             writeRow(
