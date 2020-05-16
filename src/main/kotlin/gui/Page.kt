@@ -21,8 +21,8 @@ class Page : View() {
 
     override fun onDock() {
         super.onDock()
-        setWindowMaxSize(1150.0, 750.0)
-        setWindowMinSize(1150.0, 750.0)
+        setWindowMaxSize(1150.0, 850.0)
+        setWindowMinSize(1150.0, 850.0)
         pageController.initialize()
     }
 
@@ -108,6 +108,10 @@ class Page : View() {
                 pageContext.difficultyLevels
             ) { value -> pageController.firstDifficultyLevel = DifficultyLevel.valueOf(value) }
             customComboBoxBuilder(
+                "First AI difficulty heuristic",
+                pageContext.heuristics
+            ) { value -> pageController.firstHeuristicKind = HeuristicKind.valueOf(value) }
+            customComboBoxBuilder(
                 "Second Player",
                 pageContext.players
             ) { value ->
@@ -121,6 +125,10 @@ class Page : View() {
                 "Second AI difficulty Level",
                 pageContext.difficultyLevels
             ) { value -> pageController.secondDifficultyLevel = DifficultyLevel.valueOf(value) }
+            customComboBoxBuilder(
+                "First AI heuristic",
+                pageContext.heuristics
+            ) { value -> pageController.secondHeuristicKind = HeuristicKind.valueOf(value) }
             customButtonBuilder(pageController.mainButtonLabel) { pageController.restartOnClick() }
             moveStatus(pageController.playerMove)
             winnerStatus(pageController.resultMessage)

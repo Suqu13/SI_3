@@ -1,6 +1,7 @@
 package gui
 
 import algorithm.MinMaxAlgorithm
+import algorithm.PromoteCenteredCellsHeuristic
 import engine.Board
 import engine.State
 import javafx.beans.property.SimpleBooleanProperty
@@ -21,6 +22,8 @@ class PageController : Controller() {
     lateinit var secondPlayer: State
     lateinit var firstDifficultyLevel: DifficultyLevel
     lateinit var secondDifficultyLevel: DifficultyLevel
+    lateinit var firstHeuristicKind: HeuristicKind
+    lateinit var secondHeuristicKind: HeuristicKind
 
     var cells: ObservableList<Array<State>> = observableListOf()
     val disabled = SimpleBooleanProperty(true)
@@ -64,6 +67,8 @@ class PageController : Controller() {
                     board.cells,
                     firstDifficultyLevel,
                     secondDifficultyLevel,
+                    firstHeuristicKind,
+                    secondHeuristicKind,
                     firstPlayer,
                     secondPlayer
                 )
@@ -146,14 +151,14 @@ class PageController : Controller() {
     private fun createEnvironment() {
         if (this::firstPlayer.isInitialized && this::secondPlayer.isInitialized) {
             if (this::firstDifficultyLevel.isInitialized && this::secondDifficultyLevel.isInitialized && this::firstPlayer.isInitialized && this::secondPlayer.isInitialized) {
-                firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER)
-                secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER)
+                firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER, firstHeuristicKind.heuristic)
+                secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER, secondHeuristicKind.heuristic)
                 start()
             } else if (firstPlayer == State.FIRST_AI_PLAYER && this::firstDifficultyLevel.isInitialized && secondPlayer != State.SECOND_AI_PLAYER) {
-                firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER)
+                firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER, firstHeuristicKind.heuristic)
                 start()
             } else if (firstPlayer != State.FIRST_AI_PLAYER && secondPlayer == State.SECOND_AI_PLAYER && this::secondDifficultyLevel.isInitialized) {
-                secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER)
+                secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER, secondHeuristicKind.heuristic)
                 start()
             } else if (firstPlayer == State.FIRST_PLAYER && secondPlayer == State.SECOND_PLAYER) {
                 start()

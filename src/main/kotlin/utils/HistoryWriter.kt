@@ -3,6 +3,7 @@ package utils
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import engine.State
 import gui.DifficultyLevel
+import gui.HeuristicKind
 import java.time.LocalDateTime
 
 class HistoryWriter {
@@ -49,10 +50,12 @@ class HistoryWriter {
         cells: Array<Array<State>>,
         firstAiLevel: DifficultyLevel,
         secondAiLevel: DifficultyLevel,
+        firstHeuristicKind: HeuristicKind,
+        secondHeuristicKind: HeuristicKind,
         firstState: State,
         secondState: State
     ) {
-        writer.open("${winner?.name}_${firstAiLevel.name}-${secondAiLevel.name}_${LocalDateTime.now()}.csv") {
+        writer.open("${winner?.name}_${firstAiLevel.name}/${firstHeuristicKind.name}-${secondAiLevel.name}/${secondHeuristicKind.name}_${LocalDateTime.now()}.csv") {
             writeRow(moves.filter { it.third == firstState })
             writeRow(moves.filter { it.third == secondState })
             writeRow(

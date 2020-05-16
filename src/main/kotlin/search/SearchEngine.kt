@@ -1,6 +1,9 @@
 package search
 
+import algorithm.Heuristic
 import algorithm.MinMaxAlgorithm
+import algorithm.PromoteCenteredCellsHeuristic
+import algorithm.ScoreContentOfFourHeuristic
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import engine.Board
 
@@ -13,6 +16,8 @@ import kotlin.random.Random
 class SearchEngine(
     private val firstPlayerDepth: Int,
     private val secondPlayerDepth: Int,
+    private val firstHeuristic: Heuristic,
+    private val secondHeuristic: Heuristic,
     private val alphaBeta: Boolean,
     private val gamesNumber: Int
 ) {
@@ -34,14 +39,26 @@ class SearchEngine(
         saveResultToFile(winnersStats, globalStats)
     }
 
+    private fun resolveHeuristicName(heuristic: Heuristic): String {
+        return when (heuristic) {
+            is ScoreContentOfFourHeuristic -> "Score Content Of Four Heuristic"
+            is PromoteCenteredCellsHeuristic -> "Promote Centered Cells Heuristic"
+            else -> "Unknown"
+        }
+    }
+
     private fun saveResultToFile(
         winnerStats: Pair<Triple<Double, Double, Int>, Triple<Double, Double, Int>>,
         globalStats: Pair<Pair<Double, Double>, Pair<Double, Double>>
     ) {
+        val firstHeuristicName = resolveHeuristicName(firstHeuristic)
+        val firstAIHeuristic = "First AI heuristic: $firstHeuristicName"
         val firstAIWins = "First AI wins: " + winnerStats.first.third
         val firstAIWinnerAVGMoves = "First AI as winner AVG moves: " + winnerStats.first.first
         val firstAIWinnerAVGTime = "First AI as winner AVG time: " + winnerStats.first.second
 
+        val secondHeuristicName = resolveHeuristicName(secondHeuristic)
+        val secondAIHeuristic = "First AI heuristic: $secondHeuristicName"
         val secondAIWins = "Second AI wins: " + winnerStats.second.third
         val secondAIWinnerAVGMoves = "Second AI as winner AVG moves: " + winnerStats.second.first
         val secondAIWinnerAVGTime = "Second AI as winner AVG time: " + winnerStats.second.second
@@ -52,9 +69,17 @@ class SearchEngine(
         val secondAIAVGMoves = "Second AI AVG moves: " + globalStats.second.first
         val secondAIAVGTime = "Second AI AVG time: " + globalStats.second.second
 
-        writer.open("${firstPlayerDepth}-${secondPlayerDepth}_alphaBeta-${alphaBeta}.csv") {
+        writer.open(
+            "${firstPlayerDepth}_${firstHeuristicName.replace(
+                "\\s+".toRegex(),
+                ""
+            )}-${secondPlayerDepth}_${secondHeuristicName.replace("\\s+".toRegex(), "")}_alphaBeta-${alphaBeta}.csv"
+        )
+        {
             writeRow(
                 listOf(
+                    firstAIHeuristic,
+                    secondAIHeuristic,
                     firstAIWins,
                     secondAIWins,
                     firstAIWinnerAVGMoves,
@@ -74,8 +99,8 @@ class SearchEngine(
     private fun runSingleGame() {
         val board = Board()
 
-        val firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER)
-        val secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER)
+        val firstMinMaxAlgorithm = MinMaxAlgorithm(State.FIRST_AI_PLAYER, State.SECOND_AI_PLAYER, firstHeuristic)
+        val secondMinMaxAlgorithm = MinMaxAlgorithm(State.SECOND_AI_PLAYER, State.FIRST_AI_PLAYER, secondHeuristic)
 
         var isFirstMoveOfFirstAI = true
         var isFirstMoveOfSecondAI = true
@@ -136,8 +161,8 @@ class SearchEngine(
         }
     }
 
-    private fun divideLongByIntegerAndRoundToTwoDecimal(first: Long, second: Int): Double =
-        (first.toDouble() / second * 100).roundToInt() / 100.0
+    private fun divideLongByIntegerAndRoundToTwoDecimal(first: Number, second: Number): Double =
+        (first.toLong() * 100 / second.toLong()) / 100.0
 
 
     private fun countAVGTime(res: Pair<Int, Long>): Double {
@@ -239,31 +264,43 @@ class SearchEngine(
 
 
 fun main() {
-    SearchEngine(3, 3, true, 30).runGames()
-    SearchEngine(3, 4, true, 30).runGames()
-    SearchEngine(3, 5, true, 30).runGames()
-    SearchEngine(3, 6, true, 30).runGames()
-    SearchEngine(4, 3, true, 30).runGames()
-    SearchEngine(5, 3, true, 30).runGames()
-    SearchEngine(6, 3, true, 30).runGames()
+    SearchEngine(3, 3, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
+    SearchEngine(4, 4, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
+    SearchEngine(5, 5, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
+    SearchEngine(6, 6, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
 
-    SearchEngine(6, 4, true, 30).runGames()
-    SearchEngine(6, 5, true, 30).runGames()
-    SearchEngine(4, 6, true, 30).runGames()
-    SearchEngine(5, 6, true, 30).runGames()
-    SearchEngine(6, 6, true, 30).runGames()
+    SearchEngine(3, 3, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
+    SearchEngine(4, 4, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
+    SearchEngine(5, 5, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
+    SearchEngine(6, 6, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
 
-    SearchEngine(3, 3, false, 30).runGames()
-    SearchEngine(3, 4, false, 30).runGames()
-    SearchEngine(3, 5, false, 30).runGames()
-    SearchEngine(3, 6, false, 30).runGames()
-    SearchEngine(4, 3, false, 30).runGames()
-    SearchEngine(5, 3, false, 30).runGames()
-    SearchEngine(6, 3, false, 30).runGames()
+    SearchEngine(3, 3, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
+    SearchEngine(4, 4, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
+    SearchEngine(5, 5, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
+    SearchEngine(6, 6, ScoreContentOfFourHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
 
-    SearchEngine(6, 4, false, 30).runGames()
-    SearchEngine(6, 5, false, 30).runGames()
-    SearchEngine(4, 6, false, 30).runGames()
-    SearchEngine(5, 6, false, 30).runGames()
-    SearchEngine(6, 6, false, 30).runGames()
+    SearchEngine(3, 3, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+    SearchEngine(4, 4, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+    SearchEngine(5, 5, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+    SearchEngine(6, 6, PromoteCenteredCellsHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+
+    SearchEngine(3, 3, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
+    SearchEngine(4, 4, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
+    SearchEngine(5, 5, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
+    SearchEngine(6, 6, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), true, 20).runGames()
+
+    SearchEngine(3, 3, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
+    SearchEngine(4, 4, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
+    SearchEngine(5, 5, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
+    SearchEngine(6, 6, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), true, 20).runGames()
+
+    SearchEngine(3, 3, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+    SearchEngine(4, 4, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+    SearchEngine(5, 5, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+    SearchEngine(6, 6, ScoreContentOfFourHeuristic(), PromoteCenteredCellsHeuristic(), false, 20).runGames()
+
+    SearchEngine(3, 3, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
+    SearchEngine(4, 4, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
+    SearchEngine(5, 5, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
+    SearchEngine(6, 6, PromoteCenteredCellsHeuristic(), ScoreContentOfFourHeuristic(), false, 20).runGames()
 }

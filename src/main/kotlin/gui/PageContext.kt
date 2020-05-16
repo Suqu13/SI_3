@@ -1,15 +1,21 @@
 package gui
 
+import algorithm.Heuristic
+import algorithm.PromoteCenteredCellsHeuristic
+import algorithm.ScoreContentOfFourHeuristic
 import javafx.beans.property.SimpleListProperty
-import javafx.beans.property.SimpleStringProperty
 import tornadofx.asObservable
-import tornadofx.observable
 import tornadofx.observableListOf
 
 enum class DifficultyLevel(val depth: Int) {
     EASY(1),
     MEDIUM(3),
     HARD(6)
+}
+
+enum class HeuristicKind(val heuristic: Heuristic) {
+    SCORE_CONTENT_OF_FOUR(ScoreContentOfFourHeuristic()),
+    PROMOTE_CENTERED_CELLS(PromoteCenteredCellsHeuristic())
 }
 
 enum class PlayerMove(val message: String) {
@@ -22,5 +28,6 @@ enum class PlayerMove(val message: String) {
 
 class PageContext {
     val difficultyLevels = SimpleListProperty(DifficultyLevel.values().asList().asObservable())
+    val heuristics = SimpleListProperty(HeuristicKind.values().asList().asObservable())
     val players = SimpleListProperty(observableListOf("Player", "AI"))
 }
