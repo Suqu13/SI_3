@@ -58,7 +58,7 @@ class SearchEngine(
         val firstAIWinnerAVGTime = "First AI as winner AVG time: " + winnerStats.first.second
 
         val secondHeuristicName = resolveHeuristicName(secondHeuristic)
-        val secondAIHeuristic = "First AI heuristic: $secondHeuristicName"
+        val secondAIHeuristic = "Second AI heuristic: $secondHeuristicName"
         val secondAIWins = "Second AI wins: " + winnerStats.second.third
         val secondAIWinnerAVGMoves = "Second AI as winner AVG moves: " + winnerStats.second.first
         val secondAIWinnerAVGTime = "Second AI as winner AVG time: " + winnerStats.second.second
